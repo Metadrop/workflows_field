@@ -10,11 +10,12 @@ use Drupal\Core\TypedData\DataDefinition;
 use Drupal\workflows\Entity\Workflow;
 
 /**
+ *   constraints = {"WorkflowsFieldValidStateTransition" = {}}
+ *
  * @FieldType(
  *   id = "workflows_field_item",
  *   label = @Translation("Workflows"),
  *   description = @Translation("Allows you to store a workflow state."),
- *   constraints = {"WorkflowsFieldValidStateTransition" = {}}
  * )
  */
 class WorkflowsFieldItem extends FieldItemBase {
