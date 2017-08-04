@@ -1,0 +1,20 @@
+workflow.type_settings.workflows_field:
+  type: mapping
+  label: 'Workflows Field'
+  mapping:
+    states:
+      type: sequence
+      sequence:
+        type: workflows.state
+    transitions:
+      type: sequence
+      sequence:
+        type: workflows.transition
+
+field.storage_settings.workflows_field_item:
+  type: mapping
+  label: 'Workflows Field Item Storage Settings Schema'
+  mapping:
+    workflow:
+      type: string
+      label: 'Workflow'
