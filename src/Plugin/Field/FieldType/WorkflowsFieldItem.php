@@ -58,13 +58,11 @@ class WorkflowsFieldItem extends FieldItemBase {
    * {@inheritdoc}
    */
   public function storageSettingsForm(array &$form, FormStateInterface $form_state, $has_data) {
-    // @todo, technically we could use any workflow?
     $workflows = Workflow::loadMultipleByType('workflows_field');
     $options = [];
     foreach ($workflows as $workflow) {
       $options[$workflow->id()] = $workflow->label();
     }
-
     $element = [];
     $element['workflow'] = [
       '#title' => $this->t('Workflow'),
@@ -79,10 +77,9 @@ class WorkflowsFieldItem extends FieldItemBase {
   /**
    * {@inheritdoc}
    */
-  public static function calculateDependencies(FieldDefinitionInterface $field_definition) {
-//    $dependencies = parent::calculateDependencies($field_definition);
-//    $dependencies['config'][] =
-    return [];
+  public static function calculateStorageDependencies(FieldStorageDefinitionInterface $field_definition) {
+    $dependencies['config'][] = sprintf('workflows.workflow.%s', $field_definition->getSetting('workflow'));
+    return $dependencies;
   }
 
 }
