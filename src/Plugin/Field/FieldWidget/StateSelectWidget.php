@@ -26,8 +26,14 @@ class StateSelectWidget extends WidgetBase {
     $workflow = Workflow::load($items->getSetting('workflow'));
     $type = $workflow->getTypePlugin();
 
-    // If no state is set, use the initial state from the type plugin.
-    $existing_state = empty($items[$delta]->state) ? $type->getInitialState($workflow) : $type->getState($items[$delta]->state);
+    // If the entity is new, ignore the field default and use the workflow
+    // defined default.
+    if (empty($items[$delta]->state) || $items->getEntity()->isNew()) {
+      $existing_state = $type->getInitialState($workflow);
+    }
+    else {
+      $existing_state = $type->getState($items[$delta]->state);
+    }
 
     // Allow the state not to change, but offer a list of possible to-states to
     // transition to.
@@ -41,6 +47,7 @@ class StateSelectWidget extends WidgetBase {
       '#options' => $options,
       '#default_value' => $existing_state->id(),
     ];
+
     return $element;
   }
 

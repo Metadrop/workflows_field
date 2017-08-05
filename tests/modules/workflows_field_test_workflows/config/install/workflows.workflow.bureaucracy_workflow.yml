@@ -7,6 +7,7 @@ id: bureaucracy_workflow
 label: 'Bureaucracy Workflow'
 type: workflows_field
 type_settings:
+  initial_state: in_discussion
   states:
     approved:
       label: Approved

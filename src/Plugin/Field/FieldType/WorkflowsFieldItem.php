@@ -15,6 +15,7 @@ use Drupal\workflows\Entity\Workflow;
  *   id = "workflows_field_item",
  *   label = @Translation("Workflows"),
  *   description = @Translation("Allows you to store a workflow state."),
+ *   constraints = {"WorkflowsFieldConstraint" = {}}
  * )
  */
 class WorkflowsFieldItem extends FieldItemBase {
@@ -79,6 +80,13 @@ class WorkflowsFieldItem extends FieldItemBase {
   public static function calculateStorageDependencies(FieldStorageDefinitionInterface $field_definition) {
     $dependencies['config'][] = sprintf('workflows.workflow.%s', $field_definition->getSetting('workflow'));
     return $dependencies;
+  }
+
+  /**
+   * Get the workflow associated with this field.
+   */
+  public function getWorkflow() {
+    return Workflow::load($this->getSetting('workflow'));
   }
 
 }
