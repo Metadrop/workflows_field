@@ -15,7 +15,8 @@ use Drupal\workflows\Entity\Workflow;
  *   id = "workflows_field_item",
  *   label = @Translation("Workflows"),
  *   description = @Translation("Allows you to store a workflow state."),
- *   constraints = {"WorkflowsFieldConstraint" = {}}
+ *   constraints = {"WorkflowsFieldConstraint" = {}},
+ *   default_formatter = "state_formatter",
  * )
  */
 class WorkflowsFieldItem extends FieldItemBase {

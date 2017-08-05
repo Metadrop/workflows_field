@@ -14,10 +14,10 @@ type_settings:
       weight: -9
     implementing:
       label: Implementing
-      weight: -6
+      weight: -10
     in_discussion:
       label: 'In Discussion'
-      weight: -10
+      weight: -6
     planning:
       label: Planning
       weight: -7
