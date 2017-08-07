@@ -14,6 +14,11 @@ use Symfony\Component\Validator\ConstraintValidator;
 class WorkflowsFieldContraintValidator extends ConstraintValidator implements ContainerInjectionInterface {
 
   /**
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Creates an instance of WorkflowsFieldContraintValidator.
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager) {
@@ -34,6 +39,7 @@ class WorkflowsFieldContraintValidator extends ConstraintValidator implements Co
     $entity = $field->getEntity();
     $workflow_type = $field->getWorkflow()->getTypePlugin();
 
+    // An entity can start its life in any state.
     if (!isset($field->state) || $entity->isNew()) {
       return;
     }
@@ -44,6 +50,7 @@ class WorkflowsFieldContraintValidator extends ConstraintValidator implements Co
     }
     $previous_state = $original_entity->{$field->getFieldDefinition()->getName()}->state;
 
+    // The state does not have to change.
     if ($previous_state === $field->state) {
       return;
     }
