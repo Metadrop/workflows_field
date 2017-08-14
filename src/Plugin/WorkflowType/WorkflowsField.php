@@ -4,6 +4,8 @@ namespace Drupal\workflows_field\Plugin\WorkflowType;
 
 use Drupal\workflows\Annotation\WorkflowType;
 use Drupal\workflows\Plugin\WorkflowTypeBase;
+use Drupal\workflows\WorkflowInterface;
+use Drupal\workflows\WorkflowTypeInterface;
 
 /**
  * @WorkflowType(
@@ -20,7 +22,7 @@ class WorkflowsField extends WorkflowTypeBase {
   /**
    * {@inheritdoc}
    */
-  public function getInitialState() {
+  public function getInitialState(WorkflowInterface $workflow) {
     return $this->getState($this->configuration['initial_state']);
   }
 
