@@ -1,5 +1,2 @@
- - State constraint
- - Formatter
- - Tests
  - Views filter
  - Permissions

@@ -22,7 +22,7 @@ class WorkflowsField extends WorkflowTypeBase {
   /**
    * {@inheritdoc}
    */
-  public function getInitialState(WorkflowInterface $workflow) {
+  public function getInitialState() {
     return $this->getState($this->configuration['initial_state']);
   }
 
