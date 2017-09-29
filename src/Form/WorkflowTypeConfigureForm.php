@@ -15,6 +15,7 @@ class WorkflowTypeConfigureForm extends WorkflowTypeConfigureFormBase {
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $configuration = $this->workflowType->getConfiguration();
     $form['settings'] = [
       '#title' => $this->t('Workflow Settings'),
       '#type' => 'fieldset',
@@ -23,7 +24,7 @@ class WorkflowTypeConfigureForm extends WorkflowTypeConfigureFormBase {
     $form['settings']['initial_state'] = [
       '#title' => $this->t('Initial State'),
       '#type' => 'select',
-      '#default_value' => $this->workflowType->getConfiguration()['initial_state'] ?: NULL,
+      '#default_value' => isset($configuration['initial_state']) ? $configuration['initial_state'] : NULL,
       '#options' => $labels,
     ];
     return $form;

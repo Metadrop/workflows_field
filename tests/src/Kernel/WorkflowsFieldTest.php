@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\workflows_field\Kernel;
 
-use Drupal\Core\Form\FormState;
+use Drupal\Core\Field\FieldFilteredMarkup;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\workflows\Entity\Workflow;
@@ -24,6 +24,7 @@ class WorkflowsFieldTest extends KernelTestBase {
     'system',
     'user',
     'node',
+    'options',
     'workflows',
     'workflows_field',
     'field',
@@ -55,24 +56,24 @@ class WorkflowsFieldTest extends KernelTestBase {
     $node->save();
 
     // Same state does not cause a violation.
-    $node->field_status->state = 'in_discussion';
+    $node->field_status->value = 'in_discussion';
     $violations = $node->validate();
     $this->assertCount(0, $violations);
 
     // A valid state does not cause a violation.
-    $node->field_status->state = 'approved';
+    $node->field_status->value = 'approved';
     $violations = $node->validate();
     $this->assertCount(0, $violations);
 
     // Violation exists during invalid transition.
-    $node->field_status->state = 'planning';
+    $node->field_status->value = 'planning';
     $violations = $node->validate();
     $this->assertCount(1, $violations);
     $this->assertEquals('No transition exists to move from <em class="placeholder">in_discussion</em> to <em class="placeholder">planning</em>.', $violations[0]->getMessage());
   }
 
   /**
-   * @covers \Drupal\workflows_field\Plugin\Field\FieldFormatter\StateFormatter
+   * Test the default formatter.
    */
   public function testFormatter() {
     $node = Node::create([
@@ -84,53 +85,46 @@ class WorkflowsFieldTest extends KernelTestBase {
 
     $this->assertEquals([
       '#markup' => 'In Discussion',
+      '#allowed_tags' => FieldFilteredMarkup::allowedTags(),
     ], $node->field_status->view()[0]);
   }
 
   /**
-   * @covers \Drupal\workflows_field\Plugin\Field\FieldWidget\StateSelectWidget
+   * Test the implementation of OptionsProviderInterface.
    */
-  public function testWidget() {
+  public function testOptionsProvider() {
     $node = Node::create([
       'title' => 'Foo',
       'type' => 'project',
+      'field_status' => 'in_discussion',
     ]);
     $node->save();
 
-    /** @var \Drupal\Core\Field\WidgetPluginManager $widget */
-    $widget_manager = \Drupal::service('plugin.manager.field.widget');
-    $widget = $widget_manager->createInstance('state_select_widget', [
-      'field_definition' => $node->field_status->getFieldDefinition(),
-      'settings' => [],
-      'third_party_settings' => [],
-    ]);
-
-    $form_state = new FormState();
-    $empty = [];
-
-    // Test with an empty field item list to begin with.
-    $form = $widget->formElement($node->field_status, 0, $empty, $empty, $form_state);
     $this->assertEquals([
-      '#type' => 'select',
-      '#options' => [
-        'in_discussion' => 'In Discussion',
-        'approved' => 'Approved',
-        'rejected' => 'Rejected',
-      ],
-      '#default_value' => 'in_discussion',
-    ], $form['state']);
-
-    // Test with an existing status.
-    $node->field_status->state = 'approved';
-    $form = $widget->formElement($node->field_status, 0, $empty, $empty, $form_state);
+      'implementing' => 'Implementing',
+    'approved' => 'Approved',
+    'rejected' => 'Rejected',
+    'planning' => 'Planning',
+    'in_discussion' => 'In Discussion',
+    ], $node->field_status[0]->getPossibleOptions());
     $this->assertEquals([
-      '#type' => 'select',
-      '#options' => [
-        'approved' => 'Approved',
-        'planning' => 'Planning',
-      ],
-      '#default_value' => 'approved',
-    ], $form['state']);
+      'approved' => 'Approved',
+      'rejected' => 'Rejected',
+      'in_discussion' => 'In Discussion'
+    ], $node->field_status[0]->getSettableOptions());
+
+    $this->assertEquals([
+      'implementing',
+      'approved',
+      'rejected',
+      'planning',
+      'in_discussion',
+    ], $node->field_status[0]->getPossibleValues());
+    $this->assertEquals([
+      'approved',
+      'rejected',
+      'in_discussion',
+    ], $node->field_status[0]->getSettableValues());
   }
 
   /**

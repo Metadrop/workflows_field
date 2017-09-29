@@ -40,7 +40,7 @@ class WorkflowsFieldContraintValidator extends ConstraintValidator implements Co
     $workflow_type = $field->getWorkflow()->getTypePlugin();
 
     // An entity can start its life in any state.
-    if (!isset($field->state) || $entity->isNew()) {
+    if (!isset($field->value) || $entity->isNew()) {
       return;
     }
 
@@ -48,16 +48,16 @@ class WorkflowsFieldContraintValidator extends ConstraintValidator implements Co
     if (!$entity->isDefaultTranslation() && $original_entity->hasTranslation($entity->language()->getId())) {
       $original_entity = $original_entity->getTranslation($entity->language()->getId());
     }
-    $previous_state = $original_entity->{$field->getFieldDefinition()->getName()}->state;
+    $previous_state = $original_entity->{$field->getFieldDefinition()->getName()}->value;
 
     // The state does not have to change.
-    if ($previous_state === $field->state) {
+    if ($previous_state === $field->value) {
       return;
     }
 
-    if (!$workflow_type->hasTransitionFromStateToState($previous_state, $field->state)) {
+    if (!$workflow_type->hasTransitionFromStateToState($previous_state, $field->value)) {
       $this->context->addViolation($constraint->message, [
-        '%state' => $field->state,
+        '%state' => $field->value,
         '%previous_state' => $previous_state,
       ]);
     }

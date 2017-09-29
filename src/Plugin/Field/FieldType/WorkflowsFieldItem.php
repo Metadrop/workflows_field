@@ -6,8 +6,11 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemBase;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\TypedData\DataDefinition;
+use Drupal\Core\TypedData\OptionsProviderInterface;
 use Drupal\workflows\Entity\Workflow;
+use Drupal\workflows\StateInterface;
 
 /**
  *   constraints = {"WorkflowsFieldValidStateTransition" = {}}
@@ -17,16 +20,17 @@ use Drupal\workflows\Entity\Workflow;
  *   label = @Translation("Workflows"),
  *   description = @Translation("Allows you to store a workflow state."),
  *   constraints = {"WorkflowsFieldConstraint" = {}},
- *   default_formatter = "state_formatter",
+ *   default_formatter = "list_default",
+ *   default_widget = "options_select"
  * )
  */
-class WorkflowsFieldItem extends FieldItemBase {
+class WorkflowsFieldItem extends FieldItemBase implements OptionsProviderInterface {
 
   /**
    * {@inheritdoc}
    */
   public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition) {
-    $properties['state'] = DataDefinition::create('string')
+    $properties['value'] = DataDefinition::create('string')
       ->setLabel(t('State'))
       ->setRequired(TRUE);
     return $properties;
@@ -38,7 +42,7 @@ class WorkflowsFieldItem extends FieldItemBase {
   public static function schema(FieldStorageDefinitionInterface $field_definition) {
     return [
       'columns' => [
-        'state' => [
+        'value' => [
           'type' => 'varchar',
           'length' => 64,
         ],
@@ -79,6 +83,71 @@ class WorkflowsFieldItem extends FieldItemBase {
   /**
    * {@inheritdoc}
    */
+  public function getPossibleValues(AccountInterface $account = NULL) {
+    return array_keys($this->getPossibleOptions($account));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPossibleOptions(AccountInterface $account = NULL) {
+    $workflow = $this->getWorkflow();
+    if (!$workflow) {
+      // The workflow is not known yet, the field is probably being created.
+      return [];
+    }
+    $state_labels = array_map(function ($state) {
+      return $state->label();
+    }, $workflow->getTypePlugin()->getStates());
+
+    return $state_labels;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSettableValues(AccountInterface $account = NULL) {
+    return array_keys($this->getSettableOptions($account));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSettableOptions(AccountInterface $account = NULL) {
+    // $this->value is unpopulated due to https://www.drupal.org/node/2629932
+    $field_name = $this->getFieldDefinition()->getName();
+    $value = $this->getEntity()->get($field_name)->value;
+
+    $workflow = $this->getWorkflow();
+    $type = $workflow->getTypePlugin();
+
+    $allowed_states = $type->getStates();
+    if (!empty($value) && $type->hasState($value) && ($current = $type->getState($value))) {
+      $allowed_states = array_filter($allowed_states, function(StateInterface $state) use ($current) {
+        return $current->id() === $state->id() || $current->canTransitionTo($state->id());
+      });
+    }
+    $state_labels = array_map(function ($state) {
+      return $state->label();
+    }, $allowed_states);
+
+    return $state_labels;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function applyDefaultValue($notify = TRUE) {
+    if ($workflow = $this->getWorkflow()) {
+      $initial_state = $workflow->getTypePlugin()->getInitialState();
+      $this->setValue(['value' => $initial_state->id()], $notify);
+    }
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function calculateStorageDependencies(FieldStorageDefinitionInterface $field_definition) {
     $dependencies['config'][] = sprintf('workflows.workflow.%s', $field_definition->getSetting('workflow'));
     return $dependencies;
@@ -88,7 +157,7 @@ class WorkflowsFieldItem extends FieldItemBase {
    * Get the workflow associated with this field.
    */
   public function getWorkflow() {
-    return Workflow::load($this->getSetting('workflow'));
+    return !empty($this->getSetting('workflow')) ? Workflow::load($this->getSetting('workflow')) : NULL;
   }
 
 }

@@ -4,4 +4,5 @@ description: Adds a field type which can be used for storing and transitioning s
 core: 8.x
 
 dependencies:
+  - options
   - workflows
