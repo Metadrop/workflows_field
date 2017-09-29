@@ -44,7 +44,7 @@ class WorkflowsFieldContraintValidator extends ConstraintValidator implements Co
       return;
     }
 
-    $original_entity = $this->entityTypeManager->getStorage($entity->getEntityTypeId())->loadRevision($entity->getLoadedRevisionId());
+    $original_entity = $this->entityTypeManager->getStorage($entity->getEntityTypeId())->loadUnchanged($entity->id());
     if (!$entity->isDefaultTranslation() && $original_entity->hasTranslation($entity->language()->getId())) {
       $original_entity = $original_entity->getTranslation($entity->language()->getId());
     }
