@@ -13,35 +13,7 @@ use Drupal\workflows_field\Plugin\Field\FieldType\WorkflowsFieldItem;
  *
  * @group workflows_field
  */
-class WorkflowsFieldTest extends KernelTestBase {
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = [
-    'system',
-    'user',
-    'node',
-    'options',
-    'workflows',
-    'workflows_field',
-    'field',
-    'workflows_field_test_workflows',
-  ];
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setUp() {
-    parent::setUp();
-
-    $this->installEntitySchema('user');
-    $this->installEntitySchema('node');
-    $this->installEntitySchema('workflow');
-    $this->installConfig(['workflows_field_test_workflows']);
-  }
+class WorkflowsFieldTest extends WorkflowsTestBase {
 
   /**
    * @covers \Drupal\workflows_field\Plugin\Validation\Constraint\WorkflowsFieldContraint
@@ -70,23 +42,6 @@ class WorkflowsFieldTest extends KernelTestBase {
     $violations = $node->validate();
     $this->assertCount(1, $violations);
     $this->assertEquals('No transition exists to move from <em class="placeholder">in_discussion</em> to <em class="placeholder">planning</em>.', $violations[0]->getMessage());
-  }
-
-  /**
-   * Test the default formatter.
-   */
-  public function testFormatter() {
-    $node = Node::create([
-      'title' => 'Foo',
-      'type' => 'project',
-      'field_status' => 'in_discussion',
-    ]);
-    $node->save();
-
-    $this->assertEquals([
-      '#markup' => 'In Discussion',
-      '#allowed_tags' => FieldFilteredMarkup::allowedTags(),
-    ], $node->field_status->view()[0]);
   }
 
   /**
