@@ -59,12 +59,12 @@ class StatesListFormatter extends FormatterBase {
       // Once we've found the current item no longer mark the items as before
       // current. We only apply sibling classes when the item is not the current
       // item.
-      $sibling_class = '';
       if ($is_current) {
         $before_current = FALSE;
+        $class = 'is-current';
       }
       else {
-        $sibling_class = $before_current ? 'before-current' : 'after-current';
+        $class = $before_current ? 'before-current' : 'after-current';
       }
 
       if (!in_array($key, $excluded, TRUE)) {
@@ -72,13 +72,7 @@ class StatesListFormatter extends FormatterBase {
           '#type' => 'html_tag',
           '#tag' => 'span',
           '#value' => $state->label(),
-          '#wrapper_attributes' => [
-            'class' => array_values(array_filter([
-              $key,
-              $is_current ? 'is-current' : NULL,
-              $sibling_class,
-            ])),
-          ],
+          '#wrapper_attributes' => ['class' => [$key, $class]],
         ];
       }
     }
