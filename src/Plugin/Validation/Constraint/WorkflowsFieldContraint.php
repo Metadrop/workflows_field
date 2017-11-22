@@ -21,4 +21,11 @@ class WorkflowsFieldContraint extends Constraint {
    */
   public $message = 'No transition exists to move from %previous_state to %state.';
 
+  /**
+   * Message displayed to users without appropriate permission for a given transition
+   *
+   * @var string
+   */
+  public $insufficient_permissions_transition = 'You do not have sufficient permissions to use the %transition transition.';
+
 }

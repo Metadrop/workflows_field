@@ -120,13 +120,29 @@ class WorkflowsFieldItem extends FieldItemBase implements OptionsProviderInterfa
 
     $workflow = $this->getWorkflow();
     $type = $workflow->getTypePlugin();
-
     $allowed_states = $type->getStates();
-    if (!empty($value) && $type->hasState($value) && ($current = $type->getState($value))) {
-      $allowed_states = array_filter($allowed_states, function(StateInterface $state) use ($current) {
-        return $current->id() === $state->id() || $current->canTransitionTo($state->id());
+
+    /** @var \Drupal\workflows\State $current */
+    if ($value && $type->hasState($value) && ($current = $type->getState($value))) {
+      $allowed_states = array_filter($allowed_states, function(StateInterface $state) use ($current, $workflow, $account) {
+        if ($current->id() === $state->id()) {
+          return TRUE;
+        }
+
+        // If we don't have a valid transition or we don't have an account then
+        // all we care about is whether the transition is valid so return.
+        $valid_transition = $current->canTransitionTo($state->id());
+        if (!$valid_transition || !$account) {
+          return $valid_transition;
+        }
+
+        // If we have an account object then ensure the user has permission to
+        // this transition and that it's a valid transition.
+        $transition = $current->getTransitionTo($state->id());
+        return $account->hasPermission(sprintf('use %s transition %s', $workflow->id(), $transition->id()));
       });
     }
+
     $state_labels = array_map(function ($state) {
       return $state->label();
     }, $allowed_states);
@@ -154,7 +170,10 @@ class WorkflowsFieldItem extends FieldItemBase implements OptionsProviderInterfa
   }
 
   /**
-   * Get the workflow associated with this field.
+   * Gets the workflow associated with this field.
+   *
+   * @return \Drupal\workflows\WorkflowInterface|null
+   *   The workflow of NULL.
    */
   public function getWorkflow() {
     return !empty($this->getSetting('workflow')) ? Workflow::load($this->getSetting('workflow')) : NULL;

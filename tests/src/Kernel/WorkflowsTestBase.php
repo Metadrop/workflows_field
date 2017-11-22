@@ -3,6 +3,7 @@
 namespace Drupal\Tests\workflows_field\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\Tests\user\Traits\UserCreationTrait;
 
 /**
  * Base class for testing.
@@ -10,6 +11,8 @@ use Drupal\KernelTests\KernelTestBase;
  * @group workflows_field
  */
 abstract class WorkflowsTestBase extends KernelTestBase {
+
+  use UserCreationTrait;
 
   /**
    * Modules to enable.
@@ -37,6 +40,10 @@ abstract class WorkflowsTestBase extends KernelTestBase {
     $this->installEntitySchema('node');
     $this->installEntitySchema('workflow');
     $this->installConfig(['workflows_field_test_workflows']);
+    $this->installSchema('system', ['sequences']);
+
+    // Discard user 1.
+    $this->createUser();
   }
 
 }

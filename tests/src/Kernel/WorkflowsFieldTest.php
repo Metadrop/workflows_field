@@ -16,35 +16,6 @@ use Drupal\workflows_field\Plugin\Field\FieldType\WorkflowsFieldItem;
 class WorkflowsFieldTest extends WorkflowsTestBase {
 
   /**
-   * @covers \Drupal\workflows_field\Plugin\Validation\Constraint\WorkflowsFieldContraint
-   * @covers \Drupal\workflows_field\Plugin\Validation\Constraint\WorkflowsFieldContraintValidator
-   */
-  public function testWorkflowsConstraint() {
-    $node = Node::create([
-      'title' => 'Foo',
-      'type' => 'project',
-      'field_status' => 'in_discussion',
-    ]);
-    $node->save();
-
-    // Same state does not cause a violation.
-    $node->field_status->value = 'in_discussion';
-    $violations = $node->validate();
-    $this->assertCount(0, $violations);
-
-    // A valid state does not cause a violation.
-    $node->field_status->value = 'approved';
-    $violations = $node->validate();
-    $this->assertCount(0, $violations);
-
-    // Violation exists during invalid transition.
-    $node->field_status->value = 'planning';
-    $violations = $node->validate();
-    $this->assertCount(1, $violations);
-    $this->assertEquals('No transition exists to move from <em class="placeholder">in_discussion</em> to <em class="placeholder">planning</em>.', $violations[0]->getMessage());
-  }
-
-  /**
    * Test the implementation of OptionsProviderInterface.
    */
   public function testOptionsProvider() {
@@ -80,6 +51,31 @@ class WorkflowsFieldTest extends WorkflowsTestBase {
       'rejected',
       'in_discussion',
     ], $node->field_status[0]->getSettableValues());
+  }
+
+  /**
+   * Settable options are filtered by the users permissions.
+   */
+  public function testOptionsProviderFilteredByUser() {
+    $node = Node::create([
+      'title' => 'Foo',
+      'type' => 'project',
+      'field_status' => 'in_discussion',
+    ]);
+    $node->save();
+
+    // If a user has no permissions then the only available state is the current
+    // state.
+    $this->assertEquals([
+      'in_discussion' => 'In Discussion',
+    ], $node->field_status[0]->getSettableOptions($this->createUser()));
+
+    // Grant the ability to use the approved_project transition and the user
+    // should now be able to set the Approved state.
+    $this->assertEquals([
+      'in_discussion' => 'In Discussion',
+      'approved' => 'Approved',
+    ], $node->field_status[0]->getSettableOptions($this->createUser(['use bureaucracy_workflow transition approved_project'])));
   }
 
   /**
