@@ -1,0 +1,14 @@
+{
+    "name": "drupal/workflows_field",
+    "type": "drupal-module",
+    "description": "Adds a field type which can be used for storing and transitioning states according to workflows",
+    "keywords": ["Drupal"],
+    "license": "GPL-2.0+",
+    "homepage": "https://www.drupal.org/project/workflows_field",
+    "minimum-stability": "dev",
+    "support": {
+      "issues": "https://www.drupal.org/project/issues/workflows_field",
+      "source": "https://git.drupalcode.org/project/workflows_field"
+    },
+    "require": { }
+  }
